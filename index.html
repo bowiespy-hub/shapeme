@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Aether Trinity Master v16</title>
+    <title>Aether Trinity Master Evolution</title>
     <!-- 引入系統資源 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -15,9 +15,7 @@
         :root {
             --bg-master: #0f172a;
             --bg-deep: #020617;
-            --accent-primary: #6366f1;
-            --accent-vibrant: #10b981;
-            --accent-warm: #f59e0b;
+            --accent-aurora: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #10b981 100%);
             --glass: rgba(30, 41, 59, 0.7);
         }
         body { 
@@ -33,18 +31,18 @@
             background: var(--glass);
             backdrop-filter: blur(16px); 
             border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
         }
         .tab-active { 
-            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            background: var(--accent-aurora);
             color: white;
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 0 30px rgba(99, 102, 241, 0.3);
         }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-        @keyframes aurora-pulse { 0% { opacity: 0.4; } 100% { opacity: 0.8; } }
-        .animate-aurora { animation: aurora-pulse 4s infinite alternate; }
+        @keyframes float-subtle { 0% { transform: translateY(0px); } 100% { transform: translateY(-5px); } }
+        .animate-master { animation: float-subtle 3s infinite alternate ease-in-out; }
         .stats-number { font-feature-settings: "tnum"; variant-numeric: tabular-nums; }
-        textarea { field-sizing: content; min-height: 120px; }
+        textarea { field-sizing: content; min-height: 100px; }
+        .reward-locked { opacity: 0.3; filter: grayscale(1); }
     </style>
 </head>
 <body class="overflow-x-hidden">
@@ -58,23 +56,23 @@
             return <i data-lucide={name} className={className}></i>;
         };
 
-        const STORAGE_KEY = 'GODDESS_MASTER_V16_DATA';
+        const STORAGE_KEY = 'GODDESS_MASTER_V17_DATA';
         const XP_LIMIT = 500;
         const WATER_GOAL = 1900;
 
         const BADGES = {
-            1: { label: "星火啟蒙者", icon: "sparkles", color: "text-indigo-400", glow: "rgba(99,102,241,0.2)" },
-            2: { label: "秩序建立者", icon: "zap", color: "text-emerald-400", glow: "rgba(16,185,129,0.2)" },
-            3: { label: "平衡守護者", icon: "shield", color: "text-blue-400", glow: "rgba(59,130,246,0.2)" },
-            4: { label: "生命大師", icon: "cpu", color: "text-violet-400", glow: "rgba(167,139,250,0.2)" },
-            5: { label: "永恆覺醒女神", icon: "crown", color: "text-amber-400", glow: "rgba(245,158,11,0.2)" }
+            1: { label: "星火啟蒙者", icon: "sparkles", color: "text-indigo-400" },
+            2: { label: "秩序建立者", icon: "zap", color: "text-emerald-400" },
+            3: { label: "平衡守護者", icon: "shield", color: "text-blue-400" },
+            4: { label: "智慧引導者", icon: "cpu", color: "text-violet-400" },
+            5: { label: "永恆覺醒女神", icon: "crown", color: "text-amber-400" }
         };
 
         const REWARDS = [
-            { lv: 2, title: "精緻味蕾賞析", desc: "解鎖一份零罪惡感的法式甜點", icon: "utensils" },
+            { lv: 2, title: "精緻布丁特許", desc: "解鎖一份零罪惡感的法式甜點時間", icon: "utensils" },
             { lv: 3, title: "深度香氛 Spa", desc: "讓身體在精油與靜謐中全然修復", icon: "droplets" },
-            { lv: 4, title: "品牌戰袍預算", desc: "為妳的領袖氣場添購全新形象", icon: "shopping-bag" },
-            { lv: 5, title: "極致身心之旅", desc: "在山海之間重新定義生命廣度", icon: "mountain" }
+            { lv: 4, title: "形象戰袍採購", desc: "為下一個高峰打造全新領袖形象", icon: "shopping-bag" },
+            { lv: 5, title: "奢華覺醒之旅", desc: "在山海之間重新連結生命廣度", icon: "mountain" }
         ];
 
         const App = () => {
@@ -99,19 +97,20 @@
 
             const quests = {
                 body: [
-                    { id: 'b1', title: '甦醒拉筋', sub: '喚醒肌肉靈活度', xp: 20, time: 10, icon: 'sun' },
-                    { id: 'b2', title: '女神營養補給', sub: '高品質優格+奇亞籽', xp: 30, icon: 'milk' },
-                    { id: 'b3', title: '駕駛艙修行', sub: '紅燈夾臀與腹式呼吸', xp: 25, icon: 'car' },
+                    { id: 'b1', title: '甦醒拉筋', sub: '身體靈活度喚醒', xp: 20, time: 10, icon: 'sun' },
+                    { id: 'b2', title: '女神營養補給', sub: '希臘優格+奇亞籽', xp: 30, icon: 'milk' },
+                    { id: 'b3', title: '駕駛室核心', sub: '紅燈時段的肌肉抗阻', xp: 25, icon: 'car' },
                     { id: 'b4', title: '大師深蹲', sub: '15min 內在淨化代謝', xp: 60, time: 15, icon: 'zap' },
                     { id: 'b5', title: '阻力訓練', sub: '30min 抗衰老塑形', xp: 100, time: 30, icon: 'activity' },
                 ],
                 mind: [
-                    { id: 'm1', title: '深度閱讀', sub: '20min 跨越認知邊界', xp: 50, time: 20, icon: 'book' },
-                    { id: 'm2', title: '覆盤對話', sub: '誠實記錄決策與感悟', xp: 40, icon: 'feather' },
+                    { id: 'm1', title: '深度閱讀', sub: '20min 跨越認知邊界', xp: 50, time: 20, icon: 'book-open' },
+                    { id: 'm2', title: '自我成長對話', sub: '今日決策與對話記錄', xp: 40, icon: 'brain' },
+                    { id: 'm3', title: '品牌策略思考', sub: '5min 願景與對齊', xp: 30, icon: 'target' },
                 ],
                 spirit: [
-                    { id: 's1', title: '讀經禱告', sub: '靈性肌肉每日餵養', xp: 60, icon: 'shield' },
-                    { id: 's2', title: '靜心靈修', sub: '10min 進入內在平安', xp: 40, time: 10, icon: 'sparkles' },
+                    { id: 's1', title: '讀經禱告', sub: '每日靈性食物', xp: 60, icon: 'cloud-lightning' },
+                    { id: 's2', title: '安靜靈修', sub: '10min 內在平安連結', xp: 40, time: 10, icon: 'sparkles' },
                 ]
             };
 
@@ -141,17 +140,29 @@
 
             const insights = useMemo(() => {
                 const dates = Object.keys(db.history).sort();
-                if (dates.length === 0) return { perfect: 0, streak: 0 };
-                const perf = Object.entries(db.history).filter(([d, t]) => t.length >= (totalQuestsCount-1) && (db.waterLogs[d] || 0) >= WATER_GOAL).length;
+                if (dates.length === 0) return { perfect: 0, streak: 0, duration: 0, active: 0 };
+
+                // 完美天數 (任務全打勾 + 水喝足)
+                const perfectCount = Object.entries(db.history).filter(([d, t]) => 
+                    t.length >= (totalQuestsCount - 1) && (db.waterLogs[d] || 0) >= WATER_GOAL
+                ).length;
+                
+                // 總累積天數
+                const start = new Date(db.startDate);
+                const duration = Math.ceil((new Date() - start) / 86400000);
+
+                // Streak (斷2天重計)
                 let streak = 0, check = new Date(), misses = 0;
+                const historySet = new Set(dates);
                 while (misses < 2) {
                     const ds = check.toLocaleDateString('en-CA');
-                    if (db.history[ds]?.length > 0 || (db.waterLogs[ds] || 0) > 0) { streak++; misses = 0; }
+                    if (historySet.has(ds) || (db.waterLogs[ds] || 0) > 0) { streak++; misses = 0; }
                     else if (ds !== today) misses++;
                     check.setDate(check.getDate() - 1);
-                    if (check < new Date(db.startDate)) break;
+                    if (check < start) break;
                 }
-                return { perfect: perf, streak };
+
+                return { perfect: perfectCount, streak, duration, active: dates.length };
             }, [db.history, db.waterLogs, today, totalQuestsCount]);
 
             const calendarDays = useMemo(() => {
@@ -178,27 +189,26 @@
 
             const level = Math.floor(db.xp / XP_LIMIT) + 1;
             const currentBadge = BADGES[Math.min(level, 5)];
+            const progress = (db.xp % XP_LIMIT) / XP_LIMIT * 100;
 
             return (
                 <div className="max-w-md mx-auto min-h-screen flex flex-col relative pb-36 px-4">
                     
                     {/* Header: Master Aesthetic */}
                     <header className="py-10 pt-16 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500/10 rounded-full blur-[100px] animate-aurora"></div>
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-[100px]"></div>
                         <div className="flex justify-between items-center relative z-10 px-4">
                             <div>
-                                <p className="text-[10px] font-black text-indigo-400 tracking-[0.4em] uppercase mb-1">{currentBadge.label}</p>
+                                <p className="text-[10px] font-black text-indigo-400 tracking-[0.5em] uppercase mb-1">{currentBadge.label}</p>
                                 <h1 className="text-6xl font-black italic tracking-tighter text-white">LV.{level}</h1>
                                 <div className="flex gap-4 mt-3 text-slate-400 font-bold text-[10px] uppercase tracking-widest">
-                                    <span>Streak: <b className="text-orange-400">{insights.streak}</b></span>
+                                    <span>STREAK: <b className="text-orange-400">{insights.streak}</b></span>
                                     <span>XP: <b className="text-indigo-400">{db.xp}</b></span>
                                 </div>
                             </div>
-                            <div 
-                                className="w-24 h-24 rounded-[3rem] master-glass flex items-center justify-center relative overflow-hidden"
-                                style={{ boxShadow: `0 0 40px ${currentBadge.glow}` }}
-                            >
+                            <div className="w-24 h-24 rounded-[3rem] master-glass flex items-center justify-center relative animate-master shadow-2xl border-white/10">
                                 <Icon name={currentBadge.icon} className={`w-10 h-10 ${currentBadge.color}`} />
+                                <div className="absolute inset-0 rounded-[3rem] border-2 border-white/5 animate-pulse"></div>
                             </div>
                         </div>
 
@@ -222,9 +232,9 @@
 
                     {/* Timer */}
                     {timer && (
-                        <div className="fixed inset-0 z-[100] master-glass backdrop-blur-2xl flex flex-col items-center justify-center p-10 animate-in fade-in">
-                            <p className="text-indigo-400 text-xs font-black uppercase tracking-[0.5em] mb-4">強化進化進行中</p>
-                            <h2 className="text-2xl font-black text-white mb-10 text-center">{timer.title}</h2>
+                        <div className="fixed inset-0 z-[100] bg-slate-950/95 backdrop-blur-2xl flex flex-col items-center justify-center p-10 animate-in fade-in">
+                            <p className="text-indigo-400 text-xs font-black uppercase tracking-[0.5em] mb-4">強化進行中</p>
+                            <h2 className="text-2xl font-black text-white mb-10 text-center uppercase tracking-widest">{timer.title}</h2>
                             <div className="text-8xl font-black italic tracking-tighter text-white mb-16 stats-number">
                                 {Math.floor(timer.seconds / 60)}:{(timer.seconds % 60).toString().padStart(2, '0')}
                             </div>
@@ -238,45 +248,46 @@
                         </div>
                     )}
 
-                    {/* Summary */}
+                    {/* Summary Overlay */}
                     {showSummary && (
-                        <div className="fixed inset-0 z-[100] bg-[#020617]/95 backdrop-blur-3xl flex flex-col justify-center items-center p-10 animate-in zoom-in">
+                        <div className="fixed inset-0 z-[100] bg-[#020617]/98 backdrop-blur-3xl flex flex-col justify-center items-center p-10 animate-in zoom-in">
                             <Icon name="sparkles" className="w-16 h-16 text-indigo-400 mb-8" />
                             <h2 className="text-4xl font-black italic text-white mb-2 tracking-tighter uppercase">End Ritual</h2>
-                            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.4em] mb-12">今日進化結算</p>
+                            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.4em] mb-12">今日進化報告</p>
                             <div className="w-full max-w-xs space-y-5 mb-16">
-                                <div className="flex justify-between text-sm"><span className="text-slate-500 font-bold uppercase tracking-widest">任務達成</span><span className="font-black text-white">{(db.history[today]?.length || 0)}</span></div>
-                                <div className="flex justify-between text-sm"><span className="text-slate-500 font-bold uppercase tracking-widest">淨化補水</span><span className="font-black text-cyan-400">{db.waterLogs[today] || 0} ml</span></div>
-                                <div className="pt-5 border-t border-white/5 flex justify-between text-sm font-black italic"><span className="text-indigo-400 uppercase">Evolution</span><span className="text-indigo-400">+{ (db.history[today]?.length || 0)*20 } XP</span></div>
+                                <div className="flex justify-between text-sm"><span className="text-slate-500 font-bold uppercase tracking-widest">任務達成</span><span className="font-black text-white">{(db.history[today]?.length || 0)} / {totalQuestsCount-1}</span></div>
+                                <div className="flex justify-between text-sm"><span className="text-slate-500 font-bold uppercase tracking-widest">淨化飲水</span><span className="font-black text-cyan-400">{db.waterLogs[today] || 0} ml</span></div>
+                                <div className="pt-5 border-t border-white/5 flex justify-between text-sm font-black italic"><span className="text-indigo-400 uppercase tracking-widest">Evolution Reward</span><span className="text-indigo-400">+{ (db.history[today]?.length || 0)*20 } XP</span></div>
                             </div>
                             <p className="text-center text-lg italic text-slate-300 px-10 leading-relaxed mb-16 font-medium">
                                 「妳今天的自律，是明天優雅的底氣。」
                             </p>
-                            <button onClick={() => setShowSummary(false)} className="w-full py-5 rounded-[2.5rem] bg-white text-black font-black uppercase tracking-[0.2em] shadow-2xl active:scale-95 transition-all">收下結語，優雅入眠</button>
+                            <button onClick={() => setShowSummary(false)} className="w-full py-5 rounded-[2.5rem] bg-white text-black font-black uppercase tracking-[0.2em] shadow-2xl active:scale-95 transition-all">收下鼓勵，優雅入眠</button>
                         </div>
                     )}
 
                     <main className="flex-1 mt-6">
                         {/* Tab Nav */}
-                        <div className="flex bg-white/5 p-1 rounded-[2rem] border border-white/5 mb-10 overflow-hidden backdrop-blur-sm">
+                        <div className="flex bg-white/5 p-1 rounded-[2rem] border border-white/5 mb-10 overflow-hidden">
                             {[
                                 {id: 'home', icon: 'zap', label: '修行'},
-                                {id: 'dashboard', icon: 'award', label: '獎勵'},
+                                {id: 'dashboard', icon: 'bar-chart-2', label: '統計'},
+                                {id: 'rewards', icon: 'award', label: '獎勵'},
                                 {id: 'history', icon: 'calendar', label: '進化牆'}
                             ].map(t => (
                                 <button key={t.id} onClick={() => setActiveTab(t.id)} className={`flex-1 py-3 px-1 flex flex-col items-center gap-1 rounded-2xl transition-all ${activeTab === t.id ? 'tab-active' : 'text-slate-500 hover:text-slate-300'}`}>
                                     <Icon name={t.icon} className="w-4 h-4" />
-                                    <span className="text-[8px] font-black uppercase">{t.label}</span>
+                                    <span className="text-[8px] font-black uppercase tracking-tighter">{t.label}</span>
                                 </button>
                             ))}
                         </div>
 
-                        {/* 1. Questing */}
+                        {/* 1.修行 (Home) */}
                         {activeTab === 'home' && (
                             <div className="space-y-10 animate-in">
                                 <div className="flex gap-3 overflow-x-auto no-scrollbar py-2">
                                     {['body', 'mind', 'spirit'].map(c => (
-                                        <button key={c} onClick={() => setActiveCat(c)} className={`flex-none px-8 py-3 rounded-2xl text-[10px] font-black uppercase transition-all ${activeCat === c ? 'bg-indigo-600 text-white shadow-lg' : 'master-glass text-slate-500'}`}>
+                                        <button key={c} onClick={() => setActiveCat(c)} className={`flex-none px-8 py-3 rounded-2xl text-[10px] font-black uppercase transition-all ${activeCat === c ? 'bg-indigo-600 text-white shadow-lg' : 'master-glass text-slate-500 border-none'}`}>
                                             {c === 'body'?'身次元':(c==='mind'?'心次元':'靈次元')}
                                         </button>
                                     ))}
@@ -297,7 +308,7 @@
 
                                 <div className="space-y-4 px-2">
                                     {quests[activeCat].map(q => (
-                                        <div key={q.id} className={`p-6 rounded-[2.5rem] border transition-all flex items-center ${db.history[today]?.includes(q.id) ? 'bg-indigo-500/10 border-indigo-500/30' : 'master-glass border-transparent'}`}>
+                                        <div key={q.id} className={`p-6 rounded-[2.5rem] border transition-all flex items-center ${db.history[today]?.includes(q.id) ? 'bg-indigo-500/10 border-indigo-500/30 shadow-[0_0_20px_rgba(99,102,241,0.1)]' : 'master-glass border-transparent'}`}>
                                             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mr-6 ${db.history[today]?.includes(q.id) ? 'bg-indigo-600 shadow-[0_0_20px_rgba(99,102,241,0.4)]' : 'bg-white/5'}`}>
                                                 <Icon name={q.icon} className={`w-6 h-6 ${db.history[today]?.includes(q.id) ? 'text-white' : 'text-slate-500'}`} />
                                             </div>
@@ -307,7 +318,7 @@
                                             </div>
                                             <div className="flex items-center gap-3">
                                                 {q.time && !db.history[today]?.includes(q.id) && (
-                                                    <button onClick={() => setTimer({...q, cat: activeCat, seconds: q.time * 60, isPaused: false})} className="w-10 h-10 master-glass rounded-full flex items-center justify-center text-indigo-400 active:scale-90 transition-all"><Icon name="play" className="w-3 h-3 fill-current" /></button>
+                                                    <button onClick={() => setTimer({...q, cat: activeCat, seconds: q.time * 60, isPaused: false})} className="w-10 h-10 master-glass rounded-full flex items-center justify-center text-indigo-400 active:scale-90 transition-all shadow-lg"><Icon name="play" className="w-3 h-3 fill-current" /></button>
                                                 )}
                                                 {db.history[today]?.includes(q.id) && <Icon name="check-circle" className="w-7 h-7 text-emerald-500" />}
                                             </div>
@@ -317,7 +328,7 @@
 
                                 {activeCat === 'spirit' && (
                                     <section className="space-y-4 px-2">
-                                        <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest px-4 italic">讀經領受 (Scripture Muscles)</h3>
+                                        <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest px-4 italic">讀經紀錄 (Scripture Reflection)</h3>
                                         <div className="master-glass rounded-[2.5rem] p-8 space-y-6">
                                             <input className="w-full bg-white/5 p-4 rounded-2xl outline-none text-sm font-bold text-indigo-200 placeholder:text-slate-700" placeholder="今天的經文章節..." value={db.scriptureLogs[today]?.verse || ''} onChange={(e) => setDb(p => ({...p, scriptureLogs: {...p.scriptureLogs, [today]: {...(p.scriptureLogs[today]||{}), verse: e.target.value}} }))} />
                                             <textarea className="w-full bg-white/5 p-4 rounded-2xl outline-none text-sm leading-relaxed placeholder:text-slate-700" placeholder="靈魂領受思考紀錄..." value={db.scriptureLogs[today]?.reflection || ''} onChange={(e) => setDb(p => ({...p, scriptureLogs: {...p.scriptureLogs, [today]: {...(p.scriptureLogs[today]||{}), reflection: e.target.value}} }))} />
@@ -325,20 +336,45 @@
                                     </section>
                                 )}
 
-                                <section className="space-y-4 px-2">
+                                <section className="space-y-4 px-2 pb-10 border-t border-white/5 pt-10">
                                     <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest px-4 italic">進化日誌 (Journal)</h3>
                                     <textarea className="w-full master-glass rounded-[3rem] p-10 text-sm outline-none leading-relaxed" placeholder="紀錄今日的智慧碎片、品牌思維或心情筆記..." value={db.notes[today] || ''} onChange={(e) => setDb(p => ({...p, notes: {...p.notes, [today]: e.target.value}}))} />
                                 </section>
                             </div>
                         )}
 
-                        {/* 2. Rewards */}
+                        {/* 2. 數據洞察 (Dashboard) */}
                         {activeTab === 'dashboard' && (
-                            <div className="space-y-10 animate-in">
-                                <h2 className="text-xs font-black text-slate-500 uppercase tracking-widest px-2 italic">進化里程碑與解鎖獎勵</h2>
-                                <div className="space-y-5 px-2">
+                            <div className="space-y-8 animate-in px-2">
+                                <h2 className="text-xs font-black text-slate-500 uppercase tracking-widest italic">數據洞察 Dashboard</h2>
+                                <section className="grid grid-cols-2 gap-4">
+                                    <div className="master-glass p-8 rounded-[3rem] text-center border-t-2 border-orange-500/30">
+                                        <p className="text-5xl font-black text-white italic stats-number">{insights.streak}</p>
+                                        <p className="text-[10px] text-slate-500 font-bold uppercase mt-2 tracking-widest">連擊天數</p>
+                                    </div>
+                                    <div className="master-glass p-8 rounded-[3rem] text-center border-t-2 border-yellow-400/30">
+                                        <p className="text-5xl font-black text-white italic stats-number">{insights.perfect}</p>
+                                        <p className="text-[10px] text-slate-500 font-bold uppercase mt-2 tracking-widest">100% 達成天</p>
+                                    </div>
+                                    <div className="master-glass p-8 rounded-[3rem] text-center border-t-2 border-indigo-500/30">
+                                        <p className="text-5xl font-black text-white italic stats-number">{insights.duration}</p>
+                                        <p className="text-[10px] text-slate-500 font-bold uppercase mt-2 tracking-widest">總進化天數</p>
+                                    </div>
+                                    <div className="master-glass p-8 rounded-[3rem] text-center border-t-2 border-emerald-400/30">
+                                        <p className="text-5xl font-black text-white italic stats-number">{insights.active}</p>
+                                        <p className="text-[10px] text-slate-500 font-bold uppercase mt-2 tracking-widest">有效動作天</p>
+                                    </div>
+                                </section>
+                            </div>
+                        )}
+
+                        {/* 3. 獎勵解鎖 (Rewards) */}
+                        {activeTab === 'rewards' && (
+                            <div className="space-y-10 animate-in px-2">
+                                <h2 className="text-xs font-black text-slate-500 uppercase tracking-widest italic text-center">Skool 獎勵解鎖清單</h2>
+                                <div className="space-y-5">
                                     {REWARDS.map((r, i) => (
-                                        <div key={i} className={`p-8 rounded-[3rem] border flex items-center transition-all ${level >= r.lv ? 'master-glass border-indigo-500/40 shadow-2xl' : 'reward-locked master-glass border-transparent'}`}>
+                                        <div key={i} className={`p-8 rounded-[3rem] border flex items-center transition-all ${level >= r.lv ? 'master-glass border-indigo-500/40' : 'reward-locked master-glass border-transparent'}`}>
                                             <div className={`w-16 h-16 rounded-[2rem] flex items-center justify-center mr-8 ${level >= r.lv ? 'bg-indigo-600 shadow-xl' : 'bg-slate-800 text-slate-600'}`}>
                                                 <Icon name={r.icon} className="w-8 h-8 text-white" />
                                             </div>
@@ -356,13 +392,13 @@
                             </div>
                         )}
 
-                        {/* 3. History Calendar */}
+                        {/* 4. 進化牆 (History) */}
                         {activeTab === 'history' && (
                             <div className="space-y-10 animate-in px-2">
                                 <header className="flex justify-between items-center master-glass p-5 rounded-[2rem]">
-                                    <button onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth()-1, 1))} className="p-2 hover:bg-white/5 rounded-xl"><Icon name="chevron-left" className="text-slate-500" /></button>
+                                    <button onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth()-1, 1))} className="p-2 hover:bg-white/5 rounded-xl transition-all"><Icon name="chevron-left" className="text-slate-500" /></button>
                                     <h2 className="font-black text-white text-xs tracking-[0.3em] uppercase">{currentMonth.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long' })}</h2>
-                                    <button onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth()+1, 1))} className="p-2 hover:bg-white/5 rounded-xl"><Icon name="chevron-right" className="text-slate-500" /></button>
+                                    <button onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth()+1, 1))} className="p-2 hover:bg-white/5 rounded-xl transition-all"><Icon name="chevron-right" className="text-slate-500" /></button>
                                 </header>
                                 <div className="calendar-grid">
                                     {['S','M','T','W','T','F','S'].map(s => <div key={s} className="text-[9px] font-black text-slate-600 text-center py-2 uppercase">{s}</div>)}
@@ -374,30 +410,30 @@
                                         return (
                                             <div key={d.dateStr} onClick={() => setSelectedDate(d.dateStr)} className={`aspect-square rounded-2xl flex items-center justify-center relative transition-all border ${d.dateStr === today ? 'border-indigo-500 ring-4 ring-indigo-500/10' : 'border-transparent'} ${perfect ? 'bg-indigo-600 text-white shadow-2xl' : h.length > 0 ? 'bg-indigo-500/20 text-indigo-300' : 'bg-white/5 text-slate-700 hover:bg-white/10'}`}>
                                                 <span className="text-[10px] font-black">{d.day}</span>
-                                                {hasNote && <div className="absolute top-1.5 right-1.5 w-1 h-1 bg-amber-400 rounded-full shadow-[0_0_5px_rgba(251,191,36,0.8)]"></div>}
+                                                {hasNote && <div className="absolute top-1.5 right-1.5 w-1 h-1 bg-amber-400 rounded-full shadow-[0_0_8px_rgba(251,191,36,0.6)]"></div>}
                                             </div>
                                         );
                                     })}
                                 </div>
                                 {selectedDate && (
                                     <div className="master-glass p-10 rounded-[3.5rem] border-indigo-500/20 shadow-2xl animate-in space-y-8">
-                                        <div className="flex justify-between items-start"><div className="space-y-1"><h3 className="font-black text-white tracking-tighter text-3xl italic">{selectedDate}</h3><p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.3em]">生命進化回顧</p></div><button onClick={() => setSelectedDate(null)} className="p-3 master-glass rounded-full text-slate-500"><Icon name="x" className="w-5 h-5" /></button></div>
+                                        <div className="flex justify-between items-start"><div className="space-y-1"><h3 className="font-black text-white tracking-tighter text-3xl italic">{selectedDate}</h3><p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.3em]">生命進化歷史回溯</p></div><button onClick={() => setSelectedDate(null)} className="p-3 master-glass rounded-full text-slate-500"><Icon name="x" className="w-5 h-5" /></button></div>
                                         <div className="space-y-8">
-                                            <div className="flex items-center gap-4 text-cyan-400 font-black text-xs uppercase tracking-widest"><Icon name="droplet" className="w-4 h-4"/> 淨化飲水: {db.waterLogs[selectedDate] || 0} ml</div>
+                                            <div className="flex items-center gap-4 text-cyan-400 font-black text-xs uppercase tracking-widest italic"><Icon name="droplet" className="w-4 h-4"/> Hydration: {db.waterLogs[selectedDate] || 0} ml</div>
                                             {db.scriptureLogs[selectedDate]?.reflection && (
                                                 <div className="bg-indigo-500/10 p-8 rounded-[2.5rem] border-l-4 border-indigo-600">
-                                                    <p className="text-[10px] font-black uppercase text-indigo-400 mb-3 tracking-widest italic">靈性領受 (Scripture)</p>
+                                                    <p className="text-[9px] font-black uppercase text-indigo-400 mb-3 tracking-widest italic">靈性領受 (Scripture)</p>
                                                     <p className="font-bold text-white mb-3 text-sm leading-snug tracking-tight">「{db.scriptureLogs[selectedDate].verse}」</p>
-                                                    <p className="text-slate-400 italic text-xs leading-relaxed">{db.scriptureLogs[selectedDate].reflection}</p>
+                                                    <p className="text-slate-400 italic text-xs leading-relaxed font-medium">{db.scriptureLogs[selectedDate].reflection}</p>
                                                 </div>
                                             )}
                                             {db.notes[selectedDate] && (
                                                 <div className="bg-white/5 p-8 rounded-[2.5rem] border-l-4 border-slate-700">
-                                                    <p className="text-[10px] font-black uppercase text-slate-500 mb-3 tracking-widest italic">進化筆記 (Journal)</p>
-                                                    <p className="text-slate-300 text-xs leading-relaxed">{db.notes[selectedDate]}</p>
+                                                    <p className="text-[9px] font-black uppercase text-slate-500 mb-3 tracking-widest italic">進化筆記 (Journal)</p>
+                                                    <p className="text-slate-300 text-xs leading-relaxed font-medium">{db.notes[selectedDate]}</p>
                                                 </div>
                                             )}
-                                            <div className="flex flex-wrap gap-2 pt-2">
+                                            <div className="flex flex-wrap gap-2 pt-2 border-t border-white/5">
                                                 {db.history[selectedDate]?.map(id => (<span key={id} className="px-4 py-2 bg-white/5 text-slate-400 text-[10px] font-black rounded-full border border-white/5 uppercase tracking-tighter">{Object.values(quests).flat().find(q => q.id === id)?.title}</span>))}
                                             </div>
                                         </div>
@@ -408,15 +444,16 @@
                     </main>
 
                     {/* Ritual Button */}
-                    <button onClick={() => setShowSummary(true)} className="fixed bottom-32 right-8 w-16 h-16 bg-white text-black rounded-[2rem] flex items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.2)] z-[80] active:scale-90 transition-transform animate-bounce">
+                    <button onClick={() => setShowSummary(true)} className="fixed bottom-32 right-8 w-16 h-16 bg-white text-black rounded-[2.2rem] flex items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.2)] z-[80] active:scale-90 transition-transform">
                         <Icon name="moon" className="w-8 h-8 fill-black" />
                     </button>
 
-                    {/* Bottom Nav: Master Deep Bar */}
+                    {/* Bottom Nav: Master Obsidian Bar */}
                     <nav className="fixed bottom-10 left-8 right-8 h-22 master-glass rounded-[3rem] flex justify-around items-center z-[90] shadow-[0_20px_50px_rgba(0,0,0,0.8)] px-6 border-white/10">
                         <button onClick={() => setActiveTab('home')} className={`p-5 rounded-2xl transition-all ${activeTab === 'home' ? 'text-indigo-400 scale-125' : 'text-slate-600'}`}><Icon name="layers" /></button>
+                        <button onClick={() => setActiveTab('dashboard')} className={`p-5 rounded-2xl transition-all ${activeTab === 'dashboard' ? 'text-indigo-400 scale-125' : 'text-slate-600'}`}><Icon name="bar-chart-2" /></button>
+                        <button onClick={() => setActiveTab('rewards')} className={`p-5 rounded-2xl transition-all ${activeTab === 'rewards' ? 'text-indigo-400 scale-125' : 'text-slate-600'}`}><Icon name="medal" /></button>
                         <button onClick={() => setActiveTab('history')} className={`p-5 rounded-2xl transition-all ${activeTab === 'history' ? 'text-indigo-400 scale-125' : 'text-slate-600'}`}><Icon name="grid" /></button>
-                        <button onClick={() => setActiveTab('dashboard')} className={`p-5 rounded-2xl transition-all ${activeTab === 'dashboard' ? 'text-indigo-400 scale-125' : 'text-slate-600'}`}><Icon name="medal" /></button>
                     </nav>
 
                     <div className="fixed top-0 right-0 w-20 h-20 opacity-0" onDoubleClick={() => { if(confirm('RESET SYSTEM?')) { localStorage.removeItem(STORAGE_KEY); location.reload(); } }} />
