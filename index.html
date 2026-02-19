@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Aether Trinity Evolution</title>
+    <!-- 引入系統資源 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .goddess-gradient { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #db2777 100%); }
+        .glass-card { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        @keyframes pulse-glow { 0% { box-shadow: 0 0 10px rgba(99, 102, 241, 0.2); } 100% { box-shadow: 0 0 30px rgba(99, 102, 241, 0.6); } }
+        .animate-core { animation: pulse-glow 3s infinite alternate; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    </style>
+</head>
+<body class="bg-[#020617] text-slate-100 overflow-x-hidden">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useCallback } = React;
+        
+        // --- 圖標組件 ---
+        const Icon = ({ name, className }) => {
+            useEffect(() => { if (window.lucide) window.lucide.createIcons(); }, [name]);
+            return <i data-lucide={name} className={className}></i>;
+        };
+
+        const STORAGE_KEY = 'GODDESS_TRINITY_V10_DATA';
+        const XP_LIMIT = 500;
+
+        const App = () => {
+            // --- 數據持久化 ---
+            const [db, setDb] = useState(() => {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                return saved ? JSON.parse(saved) : {
+                    xp: 0,
+                    stats: { body: 0, mind: 0, spirit: 0 },
+                    history: {}, 
+                    notes: {},   
+                    startDate: '2026-02-01'
+                };
+            });
+
+            const [activeTab, setActiveTab] = useState('dashboard'); // dashboard, quest, history
+            const [activeCat, setActiveCat] = useState('body'); // body, mind, spirit
+            const [timer, setTimer] = useState(null);
+            const [currentMonth, setCurrentMonth] = useState(new Date(2026, 1, 1)); 
+            const [selectedDate, setSelectedDate] = useState(null);
+
+            const today = new Date().toLocaleDateString('en-CA');
+
+            useEffect(() => {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+            }, [db]);
+
+            // --- 任務數據庫 ---
+            const quests = {
+                body: [
+                    { id: 'b1', title: '甦醒拉筋', sub: '10min 肩頸/髖部/下背', xp: 20, time: 10, icon: 'sun' },
+                    { id: 'b2', title: '希臘優格補完', sub: '奇亞籽+蛋白粉 (高纖代謝)', xp: 30, icon: 'utensils' },
+                    { id: 'b3', title: '駕駛艙核心', sub: '紅燈夾臀/腹式呼吸', xp: 25, icon: 'car' },
+                    { id: 'b4', title: '15min 大師蹲', sub: '排便順暢/下肢肌肉', xp: 60, time: 15, icon: 'zap' },
+                    { id: 'b5', title: '30min 阻力訓', sub: '塑形/抗衰老關鍵', xp: 100, time: 30, icon: 'flame' },
+                    { id: 'b6', title: '飲水 1900cc', sub: '身體能量傳輸基礎', xp: 20, icon: 'droplets' },
+                ],
+                mind: [
+                    { id: 'm1', title: '深度閱讀 20min', sub: '認知邊界拓展', xp: 50, time: 20, icon: 'book-open' },
+                    { id: 'm2', title: '自我成長對話', sub: '5min 自我肯定與覆盤', xp: 40, icon: 'brain' },
+                    { id: 'm3', title: '品牌與策略思考', sub: '記錄今日決策點', xp: 30, icon: 'target' },
+                ],
+                spirit: [
+                    { id: 's1', title: '讀經禱告', sub: '每日靈性食物', xp: 60, icon: 'shield' },
+                    { id: 's2', title: '安靜靈修 10min', sub: '連結內在神性與平安', xp: 40, time: 10, icon: 'sparkles' },
+                ]
+            };
+
+            const totalQuestsCount = useMemo(() => Object.values(quests).flat().length, []);
+
+            // --- 任務操作 ---
+            const toggleTask = (id, xp, cat, date = today) => {
+                const dayHistory = db.history[date] || [];
+                const isDone = dayHistory.includes(id);
+                const newHistory = { ...db.history };
+                newHistory[date] = isDone ? dayHistory.filter(i => i !== id) : [...dayHistory, id];
+
+                setDb(prev => ({
+                    ...prev,
+                    xp: Math.max(0, prev.xp + (isDone ? -xp : xp)),
+                    stats: { ...prev.stats, [cat]: Math.max(0, prev.stats[cat] + (isDone ? -xp : xp)) },
+                    history: newHistory
+                }));
+            };
+
+            const updateNote = (text) => {
+                setDb(prev => ({ ...prev, notes: { ...prev.notes, [today]: text } }));
+            };
+
+            // --- 數據統計 (Streak: 斷2天重計) ---
+            const insights = useMemo(() => {
+                const dates = Object.keys(db.history).sort();
+                if (dates.length === 0) return { perfect: 0, streak: 0, duration: 0, active: 0 };
+
+                const perfectCount = Object.values(db.history).filter(t => t.length === totalQuestsCount).length;
+                const durationDays = Math.ceil((new Date() - new Date(db.startDate)) / 86400000);
+                
+                let currentStreak = 0;
+                let checkDate = new Date();
+                let consecutiveMisses = 0;
+                const historySet = new Set(dates);
+
+                while (consecutiveMisses < 2) {
+                    const ds = checkDate.toLocaleDateString('en-CA');
+                    if (historySet.has(ds) && db.history[ds].length > 0) {
+                        currentStreak++;
+                        consecutiveMisses = 0;
+                    } else if (ds !== today) {
+                        consecutiveMisses++;
+                    }
+                    checkDate.setDate(checkDate.getDate() - 1);
+                    if (checkDate < new Date(db.startDate)) break;
+                }
+
+                return { perfect: perfectCount, streak: currentStreak, duration: durationDays, active: dates.length };
+            }, [db.history, today, totalQuestsCount]);
+
+            // --- 月曆輔助 ---
+            const calendarDays = useMemo(() => {
+                const y = currentMonth.getFullYear();
+                const m = currentMonth.getMonth();
+                const first = new Date(y, m, 1).getDay();
+                const total = new Date(y, m + 1, 0).getDate();
+                const res = [];
+                for(let i=0; i<first; i++) res.push(null);
+                for(let d=1; d<=total; d++) {
+                    res.push({ day: d, dateStr: `${y}-${(m+1).toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}` });
+                }
+                return res;
+            }, [currentMonth]);
+
+            // --- 計時器 ---
+            useEffect(() => {
+                let itv;
+                if (timer && timer.seconds > 0) {
+                    itv = setInterval(() => setTimer(t => ({ ...t, seconds: t.seconds - 1 })), 1000);
+                } else if (timer && timer.seconds === 0) {
+                    toggleTask(timer.id, timer.xp, timer.cat);
+                    setTimer(null);
+                }
+                return () => clearInterval(itv);
+            }, [timer]);
+
+            const level = Math.floor(db.xp / XP_LIMIT) + 1;
+            const progress = (db.xp % XP_LIMIT) / XP_LIMIT * 100;
+
+            return (
+                <div className="max-w-md mx-auto min-h-screen flex flex-col relative pb-36">
+                    {/* Header: 女神能量核心 */}
+                    <header className="p-8 glass-card rounded-b-[4rem] sticky top-0 z-40">
+                        <div className="flex justify-between items-center mb-6">
+                            <div>
+                                <h1 className="text-5xl font-black italic tracking-tighter text-white">LV.{level}</h1>
+                                <p className="text-[10px] font-bold text-indigo-400 tracking-widest uppercase mt-1">Goddess Core Online</p>
+                            </div>
+                            <div className="w-16 h-16 rounded-3xl goddess-gradient animate-core flex items-center justify-center shadow-lg">
+                                <Icon name="sparkles" className="text-white w-8 h-8" />
+                            </div>
+                        </div>
+                        {/* 三邊肌肉進度儀 */}
+                        <div className="grid grid-cols-3 gap-2 mb-6">
+                            {['body', 'mind', 'spirit'].map(c => (
+                                <div key={c} className="text-center bg-white/5 p-3 rounded-2xl border border-white/5">
+                                    <p className="text-[9px] font-black text-slate-500 uppercase mb-1">
+                                        {c === 'body' ? '身' : c === 'mind' ? '心' : '靈'}
+                                    </p>
+                                    <p className="text-xs font-black text-white">{db.stats[c]}</p>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                            <div className="h-full goddess-gradient transition-all duration-1000" style={{ width: `${progress}%` }} />
+                        </div>
+                    </header>
+
+                    {/* Timer Overlay */}
+                    {timer && (
+                        <div className="fixed inset-x-0 top-32 z-50 px-6">
+                            <div className="goddess-gradient p-8 rounded-[3rem] shadow-2xl flex flex-col items-center text-white border-4 border-white/20">
+                                <p className="text-xs font-black uppercase mb-2 tracking-[0.2em]">正在強化肌肉: {timer.title}</p>
+                                <p className="text-6xl font-black tabular-nums mb-4">{Math.floor(timer.seconds / 60)}:{(timer.seconds % 60).toString().padStart(2, '0')}</p>
+                                <button onClick={() => setTimer(null)} className="px-8 py-2 bg-black/30 rounded-full text-[10px] font-black uppercase">中止連線</button>
+                            </div>
+                        </div>
+                    )}
+
+                    <main className="flex-1 px-6 py-8">
+                        {/* 1. Dashboard Insights */}
+                        {activeTab === 'dashboard' && (
+                            <div className="space-y-6 animate-in">
+                                <h2 className="text-xs font-black text-slate-500 uppercase tracking-widest px-2">女神生命統計 (Insights)</h2>
+                                <section className="grid grid-cols-2 gap-4">
+                                    <div className="glass-card p-6 rounded-[2.5rem] text-center border-t-2 border-orange-500/30">
+                                        <p className="text-4xl font-black text-white">{insights.streak}</p>
+                                        <p className="text-[10px] text-slate-500 font-bold uppercase mt-1 tracking-wider">連擊天數</p>
+                                    </div>
+                                    <div className="glass-card p-6 rounded-[2.5rem] text-center border-t-2 border-yellow-400/30">
+                                        <p className="text-4xl font-black text-white">{insights.perfect}</p>
+                                        <p className="text-[10px] text-slate-500 font-bold uppercase mt-1 tracking-wider">100% 達成天</p>
+                                    </div>
+                                    <div className="glass-card p-6 rounded-[2.5rem] text-center border-t-2 border-indigo-500/30">
+                                        <p className="text-4xl font-black text-white">{insights.duration}</p>
+                                        <p className="text-[10px] text-slate-500 font-bold uppercase mt-1 tracking-wider">總進化天數</p>
+                                    </div>
+                                    <div className="glass-card p-6 rounded-[2.5rem] text-center border-t-2 border-emerald-400/30">
+                                        <p className="text-4xl font-black text-white">{insights.active}</p>
+                                        <p className="text-[10px] text-slate-500 font-bold uppercase mt-1 tracking-wider">有效動作天</p>
+                                    </div>
+                                </section>
+
+                                <section className="glass-card p-8 rounded-[3rem] text-center border border-white/5">
+                                    <Icon name="quote" className="w-6 h-6 text-indigo-400 mx-auto mb-4" />
+                                    <p className="text-sm italic text-slate-300 leading-relaxed font-medium">
+                                        「不管妳住在豪宅還是漏室，妳的靈魂永遠住在身體裡。」
+                                    </p>
+                                    <p className="text-[10px] text-slate-500 mt-4 font-black uppercase tracking-widest">— 核心價值</p>
+                                </section>
+                            </div>
+                        )}
+
+                        {/* 2. 任務分區橫滑 (Quest Tab) */}
+                        {activeTab === 'home' && (
+                            <div className="space-y-8 animate-in">
+                                {/* 分類切換器 */}
+                                <div className="flex bg-white/5 p-1 rounded-2xl border border-white/5">
+                                    {['body', 'mind', 'spirit'].map(c => (
+                                        <button 
+                                            key={c}
+                                            onClick={() => setActiveCat(c)}
+                                            className={`flex-1 py-3 text-xs font-black uppercase rounded-xl transition-all ${activeCat === c ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500'}`}
+                                        >
+                                            {c === 'body' ? '身' : c === 'mind' ? '心' : '靈'}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* 任務清單 */}
+                                <div className="space-y-3">
+                                    {quests[activeCat].map(q => (
+                                        <div 
+                                            key={q.id}
+                                            className={`p-5 rounded-[2.5rem] border-2 transition-all flex items-center ${db.history[today]?.includes(q.id) ? 'bg-emerald-500/10 border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.1)]' : 'glass-card border-transparent'}`}
+                                        >
+                                            <div className="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center mr-4">
+                                                <Icon name={q.icon} className={`w-6 h-6 ${db.history[today]?.includes(q.id) ? 'text-emerald-400' : 'text-indigo-400'}`} />
+                                            </div>
+                                            <div className="flex-1" onClick={() => toggleTask(q.id, q.xp, activeCat)}>
+                                                <h4 className="text-sm font-bold text-white mb-0.5">{q.title}</h4>
+                                                <p className="text-[10px] text-slate-500 font-medium">{q.sub}</p>
+                                            </div>
+                                            <div className="flex flex-col items-end gap-2">
+                                                <span className="text-[10px] font-black text-indigo-400">+{q.xp}</span>
+                                                <div className="flex gap-2">
+                                                    {q.time && !db.history[today]?.includes(q.id) && (
+                                                        <button onClick={() => setTimer({...q, cat: activeCat, seconds: q.time * 60})} className="p-2 bg-slate-800 rounded-xl text-slate-400 active:bg-indigo-600">
+                                                            <Icon name="timer" className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+                                                    {db.history[today]?.includes(q.id) && <Icon name="check-circle" className="w-6 h-6 text-emerald-500" />}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* 私密筆記格子 */}
+                                <section className="mt-10">
+                                    <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4 px-2">今日女神筆記 (Notes)</h3>
+                                    <div className="glass-card p-6 rounded-[2.5rem] border border-pink-500/20">
+                                        <textarea 
+                                            className="w-full bg-transparent outline-none text-sm text-slate-200 h-32 leading-relaxed"
+                                            placeholder="今天有什麼決策智慧？或是三肌肉鍛鍊的心情..."
+                                            value={db.notes[today] || ''}
+                                            onChange={(e) => updateNote(e.target.value)}
+                                        />
+                                        <p className="text-[8px] text-right font-black text-slate-600 uppercase mt-2">Auto Syncing...</p>
+                                    </div>
+                                </section>
+                            </div>
+                        )}
+
+                        {/* 3. 精密月曆 (History Tab) */}
+                        {activeTab === 'history' && (
+                            <div className="space-y-6 animate-in">
+                                <header className="flex justify-between items-center glass-card p-4 rounded-3xl">
+                                    <button onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth()-1, 1))} className="p-2 bg-slate-800 rounded-xl"><Icon name="chevron-left" /></button>
+                                    <h2 className="font-black text-white text-sm tracking-[0.2em] uppercase">
+                                        {currentMonth.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long' })}
+                                    </h2>
+                                    <button onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth()+1, 1))} className="p-2 bg-slate-800 rounded-xl"><Icon name="chevron-right" /></button>
+                                </header>
+
+                                <div className="calendar-grid text-center text-[10px] font-black text-slate-500 uppercase mb-2">
+                                    {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(s => <div key={s}>{s}</div>)}
+                                </div>
+
+                                <div className="calendar-grid">
+                                    {calendarDays.map((d, i) => {
+                                        if (!d) return <div key={`empty-${i}`} className="aspect-square"></div>;
+                                        const h = db.history[d.dateStr] || [];
+                                        const isPerfect = h.length === totalQuestsCount;
+                                        const isActive = h.length > 0;
+                                        const hasNote = !!db.notes[d.dateStr];
+                                        
+                                        return (
+                                            <div 
+                                                key={d.dateStr} 
+                                                onClick={() => setSelectedDate(d.dateStr)}
+                                                className={`aspect-square rounded-2xl flex flex-col items-center justify-center relative border transition-all ${d.dateStr === today ? 'border-indigo-500 scale-110 z-10' : 'border-white/5'} ${isPerfect ? 'bg-indigo-600 text-white' : isActive ? 'bg-indigo-900/40 text-indigo-300' : 'bg-slate-900/40 text-slate-600'}`}
+                                            >
+                                                <span className="text-xs font-black">{d.day}</span>
+                                                {hasNote && <div className="absolute top-1.5 right-1.5 w-1 h-1 bg-pink-400 rounded-full"></div>}
+                                                {isActive && !isPerfect && <div className="absolute bottom-1.5 w-1 h-1 bg-indigo-400 rounded-full"></div>}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                {selectedDate && (
+                                    <div className="glass-card p-8 rounded-[3.5rem] border border-indigo-500/30 animate-in">
+                                        <div className="flex justify-between items-center mb-6">
+                                            <h3 className="font-black text-indigo-400 tracking-widest">{selectedDate}</h3>
+                                            <button onClick={() => setSelectedDate(null)}><Icon name="x" className="w-5 h-5" /></button>
+                                        </div>
+                                        {db.notes[selectedDate] && (
+                                            <div className="p-4 bg-pink-500/10 rounded-2xl border-l-4 border-pink-500 mb-6 italic text-xs text-slate-300 leading-relaxed">
+                                                "{db.notes[selectedDate]}"
+                                            </div>
+                                        )}
+                                        <div className="flex flex-wrap gap-2">
+                                            {db.history[selectedDate]?.map(id => (
+                                                <span key={id} className="px-3 py-1 bg-emerald-500/20 text-emerald-400 text-[10px] font-black rounded-full border border-emerald-500/30">
+                                                    {Object.values(quests).flat().find(q => q.id === id)?.title}
+                                                </span>
+                                            ))}
+                                        </div>
+                                        {selectedDate !== today && (
+                                            <div className="pt-6 border-t border-white/5 mt-6">
+                                                <p className="text-[10px] font-bold text-slate-500 uppercase mb-4 tracking-widest">遺失的肌肉 (補簽機制)</p>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {Object.values(quests).flat().filter(q => !db.history[selectedDate]?.includes(q.id)).map(q => (
+                                                        <button 
+                                                            key={q.id}
+                                                            onClick={() => toggleTask(q.id, q.xp, q.id.startsWith('b')?'body':q.id.startsWith('m')?'mind':'spirit', selectedDate)}
+                                                            className="px-3 py-1 bg-slate-800 text-slate-400 text-[10px] rounded-full active:bg-indigo-600 active:text-white"
+                                                        >
+                                                            + {q.title}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </main>
+
+                    {/* Navbar */}
+                    <nav className="fixed bottom-0 left-0 right-0 bg-slate-950/80 backdrop-blur-3xl border-t border-white/5 p-6 pb-10 flex justify-around items-center z-50 rounded-t-[3rem] shadow-[0_-10px_40px_rgba(0,0,0,0.8)]">
+                        <button onClick={() => setActiveTab('dashboard')} className={`flex flex-col items-center gap-1.5 transition-all ${activeTab === 'dashboard' ? 'text-indigo-400 scale-110 font-black':'text-slate-600'}`}>
+                            <Icon name="layout-grid" className="w-6 h-6" />
+                            <span className="text-[8px] uppercase font-black">數據</span>
+                        </button>
+                        <button onClick={() => setActiveTab('home')} className={`flex flex-col items-center gap-1.5 transition-all ${activeTab === 'home' ? 'text-indigo-400 scale-110 font-black':'text-slate-600'}`}>
+                            <Icon name="gem" className="w-6 h-6" />
+                            <span className="text-[8px] uppercase font-black">任務</span>
+                        </button>
+                        <button onClick={() => setActiveTab('history')} className={`flex flex-col items-center gap-1.5 transition-all ${activeTab === 'history' ? 'text-indigo-400 scale-110 font-black':'text-slate-600'}`}>
+                            <Icon name="calendar-days" className="w-6 h-6" />
+                            <span className="text-[8px] uppercase font-black">歷史</span>
+                        </button>
+                    </nav>
+
+                    {/* 緊急重置 */}
+                    <div className="fixed top-0 right-0 w-20 h-20 opacity-0" onDoubleClick={() => { if(confirm('⚠️ 格式化進化數據？')) { localStorage.removeItem(STORAGE_KEY); location.reload(); } }} />
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
